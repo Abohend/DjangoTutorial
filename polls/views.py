@@ -3,6 +3,7 @@ from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 from django.views import generic
 from django.db.models import F
+from django.utils import timezone
 from .models import *
 
 class IndexView(generic.ListView):
@@ -10,11 +11,14 @@ class IndexView(generic.ListView):
     context_object_name = "latest_questions_list"
     def get_queryset(self):
         """Return the last five published questions."""
-        return Question.objects.order_by("-pub_date")[0:5]
+        return Question.objects.filter(pub_date__lte=timezone.now()).order_by("-pub_date")[:5]
 
 class DetailsView(generic.DetailView):
     template_name = "polls/details.html"
     model = Question
+    def get_queryset(self):
+        """Exclude any future questions"""
+        return Question.objects.filter(pub_date__lte=timezone.now())
 
 class ResultsView(generic.DetailView):
     template_name = "polls/results.html"
